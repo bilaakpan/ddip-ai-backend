@@ -1,0 +1,356 @@
+// DDip AI — Database Schema
+// Models: User, AIInteraction, ProjectSubmission, ContactSubmission, ContentBlock,
+//         HeroSlider, Faq, Work, Tag, AiSolution, Influencer, Automation,
+//         AutomationIcon, UseCase, Insight
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ───
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum ProjectStatus {
+  NEW
+  IN_REVIEW
+  CONTACTED
+  IN_PROGRESS
+  COMPLETED
+  ARCHIVED
+}
+
+enum ContactStatus {
+  NEW
+  RESPONDED
+  ARCHIVED
+}
+
+enum ContentType {
+  TEXT
+  HTML
+  JSON
+  IMAGE_URL
+}
+
+// ─── Models ───
+
+/// Admin users with RBAC
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         Role     @default(VIEWER)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("users")
+}
+
+/// "Talk to Our AI" module — conversational AI interaction entries
+model AIInteraction {
+  id        String   @id @default(uuid())
+  name      String?
+  email     String?
+  phone     String?
+  message   String
+  category  String?
+  source    String?  // "desktop" | "mobile"
+  ipAddress String?
+  createdAt DateTime @default(now())
+
+  @@map("ai_interactions")
+}
+
+/// "Tell Us Your Project" module — multi-step project intake
+model ProjectSubmission {
+  id                 String        @id @default(uuid())
+  // Contact Info
+  fullName           String
+  email              String
+  phone              String?
+  company            String?
+  title              String?
+  // Project Details
+  projectType        String        // ai-commercial, ai-content, ai-influencer, automation, other
+  projectDescription String?
+  // AI Influencer specific fields (JSON)
+  influencerDetails  String?       // JSON: targetRegions, language, audience, purpose, type
+  // Brief & References
+  styleReference     String?       // URL or file path
+  brandGuide         String?       // File path
+  briefDetails       String?
+  briefFile          String?       // File path
+  // Meta
+  source             String?       // "desktop" | "mobile"
+  status             ProjectStatus @default(NEW)
+  internalNotes      String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@map("project_submissions")
+}
+
+/// "Contact Us / WhatsApp" module
+model ContactSubmission {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  source    String?       // "desktop" | "mobile" | "whatsapp"
+  status    ContactStatus @default(NEW)
+  createdAt DateTime      @default(now())
+
+  @@map("contact_submissions")
+}
+
+/// Dynamic content blocks (CMS)
+model ContentBlock {
+  id        String      @id @default(uuid())
+  key       String      @unique  // e.g., "hero_title", "about_text"
+  value     String      // JSON string or HTML or plain text
+  type      ContentType @default(TEXT)
+  updatedBy String?     // User ID
+  updatedAt DateTime    @updatedAt
+
+  @@map("content_blocks")
+}
+
+// ─── Content Management Models ───
+
+/// Homepage hero slider items
+model HeroSlider {
+  id         String   @id @default(uuid())
+  problem    String
+  solution   String
+  videoUrl   String?
+  buttonText String?
+  buttonHref String?
+  sortOrder  Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("hero_sliders")
+}
+
+/// FAQ items, scoped per page
+model Faq {
+  id        String   @id @default(uuid())
+  pageSlug  String   // e.g., "main", "ai-influencer", "automation", "ai-content", "ai-commercial"
+  question  String
+  answer    String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+/// Portfolio / Works items
+model Work {
+  id            String   @id @default(uuid())
+  title         String
+  body          String?
+  field         String?  // Industry category (e.g., "REAL ESTATE")
+  mediaUrl      String?
+  mediaType     String?  // "image" | "video"
+  isHighlighted Boolean  @default(false) // Show on homepage "Selected Work"
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  tags          WorkTag[]
+
+  @@map("works")
+}
+
+/// AI Solutions cards
+model AiSolution {
+  id        String   @id @default(uuid())
+  title     String
+  body      String?
+  mediaUrl  String?
+  mediaType String?  // "image" | "video"
+  slug           String   @unique // e.g., "ai-content-creation"
+  showInMegaMenu Boolean  @default(false) // FQ3: admin toggle for mega menu visibility
+  sortOrder      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tags      AiSolutionTag[]
+
+  @@map("ai_solutions")
+}
+
+/// AI Influencer profiles
+model Influencer {
+  id             String   @id @default(uuid())
+  name           String
+  surname        String?
+  country        String?
+  countryCode    String?  // ISO 3166-1 alpha-2 for flag icon
+  region         String?
+  language       String?
+  category       String?  // "Influencer" | "Ambassador" | "Mascot" | custom
+  persona        String?
+  gender         String?
+  title          String?
+  summary        String?
+  profile        String?
+  contentFocus   String?
+  visualStyle    String?
+  tone           String?
+  brandFit       String?
+  imageUrl       String?
+  videoUrl       String?
+  textOnImage    String?  // Overlay text on popup
+  showOnHomepage Boolean  @default(false)
+  showOnAiinf    Boolean  @default(true)
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("influencers")
+}
+
+/// Automation template cards
+model Automation {
+  id            String   @id @default(uuid())
+  title         String
+  isHighlighted Boolean  @default(false) // Show on main automations page
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  icons         AutomationIconMap[]
+
+  @@map("automations")
+}
+
+/// Reusable automation/service icons
+model AutomationIcon {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  iconUrl   String
+  createdAt DateTime @default(now())
+  automations AutomationIconMap[]
+
+  @@map("automation_icons")
+}
+
+/// Junction: Automation <-> AutomationIcon
+model AutomationIconMap {
+  automationId String
+  iconId       String
+  automation   Automation     @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  icon         AutomationIcon @relation(fields: [iconId], references: [id], onDelete: Cascade)
+
+  @@id([automationId, iconId])
+  @@map("automation_icon_map")
+}
+
+/// Use cases (assigned to specific pages)
+model UseCase {
+  id        String   @id @default(uuid())
+  brand     String
+  mediaUrl  String?
+  mediaType String?  // "image" | "video"
+  pageSlug  String   // e.g., "ai-influencer", "ai-content", "ai-commercial"
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tags      UseCaseTag[]
+
+  @@map("use_cases")
+}
+
+/// Blog / Insights articles
+model Insight {
+  id             String   @id @default(uuid())
+  title          String
+  slug           String   @unique
+  category       String?
+  imageUrl       String?
+  body           String   // Rich text HTML
+  publishedAt    DateTime @default(now())
+  seoTitle       String?
+  seoDescription String?
+  seoOgImage     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("insights")
+}
+
+// ─── Tag System ───
+
+/// Reusable tags with category scoping
+model Tag {
+  id        String   @id @default(uuid())
+  name      String
+  category  String   // e.g., "work", "ai-solution", "use-case"
+  createdAt DateTime @default(now())
+
+  works       WorkTag[]
+  aiSolutions AiSolutionTag[]
+  useCases    UseCaseTag[]
+
+  @@unique([name, category])
+  @@map("tags")
+}
+
+model WorkTag {
+  workId String
+  tagId  String
+  work   Work @relation(fields: [workId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([workId, tagId])
+  @@map("work_tags")
+}
+
+model AiSolutionTag {
+  solutionId String
+  tagId      String
+  solution   AiSolution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  tag        Tag        @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([solutionId, tagId])
+  @@map("ai_solution_tags")
+}
+
+model UseCaseTag {
+  useCaseId String
+  tagId     String
+  useCase   UseCase @relation(fields: [useCaseId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([useCaseId, tagId])
+  @@map("use_case_tags")
+}
+
+// ─── Filter Option Lists (Manually Defined) ───
+
+/// Manually defined filter options for dropdowns
+model FilterOption {
+  id       String @id @default(uuid())
+  group    String // e.g., "influencer_region", "influencer_language", "influencer_persona", "work_field", "influencer_category"
+  value    String
+  sortOrder Int   @default(0)
+
+  @@unique([group, value])
+  @@map("filter_options")
+}
