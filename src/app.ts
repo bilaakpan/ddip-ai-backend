@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import { corsOptions } from "./config/cors";
@@ -25,6 +26,9 @@ app.get("/health", (_req, res) => {
     environment: process.env.NODE_ENV || "development",
   });
 });
+
+// ─── Static File Serving ───
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // ─── API Routes ───
 app.use("/api", routes);

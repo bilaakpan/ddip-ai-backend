@@ -20,6 +20,7 @@ import { adminAiSolutionRouter } from "./admin/aiSolutions";
 import { adminAutomationRouter } from "./admin/automations";
 import { adminUseCaseRouter } from "./admin/useCases";
 import { adminInsightRouter } from "./admin/insights";
+import { adminUploadRouter } from "./admin/upload";
 import { authenticate } from "../middleware/auth";
 
 const router = Router();
@@ -48,5 +49,6 @@ router.use("/admin/ai-solutions", authenticate, adminAiSolutionRouter);
 router.use("/admin/automations", authenticate, adminAutomationRouter);
 router.use("/admin/use-cases", authenticate, adminUseCaseRouter);
 router.use("/admin/insights", authenticate, adminInsightRouter);
+router.use("/admin/upload", authenticate, adminUploadRouter);
 
 export { router as routes };
