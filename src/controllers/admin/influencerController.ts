@@ -55,9 +55,9 @@ export async function createInfluencer(
   try {
     const {
       name, surname, country, countryCode, region, language,
-      category, persona, gender, title, summary, profile,
+      category, persona, gender, title, age, summary, profile,
       contentFocus, visualStyle, tone, brandFit,
-      imageUrl, videoUrl, textOnImage,
+      imageUrl, videoUrl, textOnImage, cardColor,
       showOnHomepage, showOnAiinf, sortOrder,
     } = req.body;
 
@@ -78,6 +78,7 @@ export async function createInfluencer(
         persona,
         gender,
         title,
+        age,
         summary,
         profile,
         contentFocus,
@@ -87,6 +88,7 @@ export async function createInfluencer(
         imageUrl,
         videoUrl,
         textOnImage,
+        cardColor,
         showOnHomepage: showOnHomepage ?? false,
         showOnAiinf: showOnAiinf ?? true,
         sortOrder: sortOrder ?? 0,
@@ -108,9 +110,9 @@ export async function updateInfluencer(
     const id = getParam(req, "id")!;
     const {
       name, surname, country, countryCode, region, language,
-      category, persona, gender, title, summary, profile,
+      category, persona, gender, title, age, summary, profile,
       contentFocus, visualStyle, tone, brandFit,
-      imageUrl, videoUrl, textOnImage,
+      imageUrl, videoUrl, textOnImage, cardColor,
       showOnHomepage, showOnAiinf, sortOrder,
     } = req.body;
 
@@ -133,6 +135,7 @@ export async function updateInfluencer(
         ...(persona !== undefined && { persona }),
         ...(gender !== undefined && { gender }),
         ...(title !== undefined && { title }),
+        ...(age !== undefined && { age }),
         ...(summary !== undefined && { summary }),
         ...(profile !== undefined && { profile }),
         ...(contentFocus !== undefined && { contentFocus }),
@@ -142,6 +145,7 @@ export async function updateInfluencer(
         ...(imageUrl !== undefined && { imageUrl }),
         ...(videoUrl !== undefined && { videoUrl }),
         ...(textOnImage !== undefined && { textOnImage }),
+        ...(cardColor !== undefined && { cardColor }),
         ...(showOnHomepage !== undefined && { showOnHomepage }),
         ...(showOnAiinf !== undefined && { showOnAiinf }),
         ...(sortOrder !== undefined && { sortOrder }),

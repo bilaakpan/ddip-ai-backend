@@ -209,6 +209,7 @@ model Influencer {
   persona        String?
   gender         String?
   title          String?
+  age            Int?     // Optional age, rendered as "{title} | {age}" subtitle on popup
   summary        String?
   profile        String?
   contentFocus   String?
@@ -218,6 +219,7 @@ model Influencer {
   imageUrl       String?
   videoUrl       String?
   textOnImage    String?  // Overlay text on popup
+  cardColor      String?  // Hex (e.g. "#CDDBC0") for the homepage/AI-influencer card background. Falls back to deterministic id-hash on the frontend.
   showOnHomepage Boolean  @default(false)
   showOnAiinf    Boolean  @default(true)
   sortOrder      Int      @default(0)
